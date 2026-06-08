@@ -65,12 +65,21 @@ exports.AppModule = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const app_controller_1 = __webpack_require__(/*! ./app.controller */ "./apps/api-gateway/src/app.controller.ts");
 const app_service_1 = __webpack_require__(/*! ./app.service */ "./apps/api-gateway/src/app.service.ts");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [],
+        imports: [
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+                envFilePath: [
+                    'apps/api-gateway/.env',
+                    '.env',
+                ],
+            }),
+        ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
@@ -118,6 +127,16 @@ module.exports = require("@nestjs/common");
 
 /***/ },
 
+/***/ "@nestjs/config"
+/*!*********************************!*\
+  !*** external "@nestjs/config" ***!
+  \*********************************/
+(module) {
+
+module.exports = require("@nestjs/config");
+
+/***/ },
+
 /***/ "@nestjs/core"
 /*!*******************************!*\
   !*** external "@nestjs/core" ***!
@@ -125,6 +144,16 @@ module.exports = require("@nestjs/common");
 (module) {
 
 module.exports = require("@nestjs/core");
+
+/***/ },
+
+/***/ "@nestjs/swagger"
+/*!**********************************!*\
+  !*** external "@nestjs/swagger" ***!
+  \**********************************/
+(module) {
+
+module.exports = require("@nestjs/swagger");
 
 /***/ }
 
@@ -172,9 +201,22 @@ var exports = __webpack_exports__;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __webpack_require__(/*! @nestjs/core */ "@nestjs/core");
 const app_module_1 = __webpack_require__(/*! ./app.module */ "./apps/api-gateway/src/app.module.ts");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.setGlobalPrefix('api');
+    if (process.env.NODE_ENV !== 'production') {
+        const options = new swagger_1.DocumentBuilder()
+            .setTitle('API Gateway')
+            .setDescription('API Gateway for managing microservices')
+            .setVersion('1.0')
+            .addBearerAuth()
+            .build();
+        const document = swagger_1.SwaggerModule.createDocument(app, options);
+        swagger_1.SwaggerModule.setup('api/docs', app, document);
+    }
     await app.listen(process.env.PORT ?? 3000);
+    console.log(`API-Gateway is running on port ${process.env.PORT}`);
 }
 bootstrap();
 

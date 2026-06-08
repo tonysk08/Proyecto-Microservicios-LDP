@@ -65,12 +65,21 @@ exports.CatalogServiceModule = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const catalog_service_controller_1 = __webpack_require__(/*! ./catalog-service.controller */ "./apps/catalog-service/src/catalog-service.controller.ts");
 const catalog_service_service_1 = __webpack_require__(/*! ./catalog-service.service */ "./apps/catalog-service/src/catalog-service.service.ts");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
 let CatalogServiceModule = class CatalogServiceModule {
 };
 exports.CatalogServiceModule = CatalogServiceModule;
 exports.CatalogServiceModule = CatalogServiceModule = __decorate([
     (0, common_1.Module)({
-        imports: [],
+        imports: [
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+                envFilePath: [
+                    'apps/catalog-service/.env',
+                    '.env',
+                ],
+            }),
+        ],
         controllers: [catalog_service_controller_1.CatalogServiceController],
         providers: [catalog_service_service_1.CatalogServiceService],
     })
@@ -115,6 +124,16 @@ exports.CatalogServiceService = CatalogServiceService = __decorate([
 (module) {
 
 module.exports = require("@nestjs/common");
+
+/***/ },
+
+/***/ "@nestjs/config"
+/*!*********************************!*\
+  !*** external "@nestjs/config" ***!
+  \*********************************/
+(module) {
+
+module.exports = require("@nestjs/config");
 
 /***/ },
 
@@ -174,7 +193,8 @@ const core_1 = __webpack_require__(/*! @nestjs/core */ "@nestjs/core");
 const catalog_service_module_1 = __webpack_require__(/*! ./catalog-service.module */ "./apps/catalog-service/src/catalog-service.module.ts");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(catalog_service_module_1.CatalogServiceModule);
-    await app.listen(process.env.PORT ?? 3001);
+    await app.listen(process.env.PORT ?? 3000);
+    console.log(`Catalog-Service is running on port ${process.env.PORT}`);
 }
 bootstrap();
 
