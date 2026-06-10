@@ -1,11 +1,23 @@
 import { NestFactory } from '@nestjs/core';
 import { CatalogServiceModule } from './catalog-service.module';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(CatalogServiceModule);
-  await app.listen(process.env.PORT ?? 3000);
-
-  console.log(`Catalog-Service is running on port ${process.env.PORT}`);
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    CatalogServiceModule,
+    {
+      transport: Transport.RMQ,
+      options: {
+        urls: [process.env.RABBITMQ_URL ?? 'amqp://localhost:5672'],
+        queue: 'catalog_queue',
+        queueOptions: {
+          durable: true,
+        },
+      },
+    }
+  );
+  await app.listen();
+  console.log(`Catalog-Service esta escuchando en RabbitMQ...`);
 }
 bootstrap();

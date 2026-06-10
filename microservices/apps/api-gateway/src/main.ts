@@ -4,6 +4,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const server = app.getHttpServer();
+  server.setTimeout(10000); // Establece el timeout a 10 segundos (en milisegundos)
   
   app.setGlobalPrefix('api');
 

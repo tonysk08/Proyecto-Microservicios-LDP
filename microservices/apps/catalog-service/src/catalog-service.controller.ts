@@ -1,12 +1,17 @@
-import { Controller, Get } from '@nestjs/common';
-import { CatalogServiceService } from './catalog-service.service';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller()
 export class CatalogServiceController {
-  constructor(private readonly catalogServiceService: CatalogServiceService) {}
-
-  @Get()
-  getHello(): string {
-    return this.catalogServiceService.getHello();
+  
+  @MessagePattern({ cmd: 'get_products' })// Escucha este patrón específico
+  getProducts(@Payload() data: any) {
+    console.log('Mensaje recibido en Catalog:', data);
+    
+    // Lo que retornes aquí se enviará automáticamente de vuelta al Gateway
+    return [
+      { id: 1, name: 'Laptop Pro', price: 1200 },
+      { id: 2, name: 'Mouse Gamer', price: 50 },
+    ];
   }
 }

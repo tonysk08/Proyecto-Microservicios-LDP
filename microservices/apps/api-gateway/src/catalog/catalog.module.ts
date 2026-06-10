@@ -1,17 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule,ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { CatalogModule } from './catalog/catalog.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CatalogController } from './catalog.controller';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: [
-        'apps/api-gateway/.env',
-        '.env',
-      ],
-    }),
+    ConfigModule,
     ClientsModule.registerAsync([
       {
         name: 'CATALOG_SERVICE',
@@ -20,17 +14,13 @@ import { CatalogModule } from './catalog/catalog.module';
           options: {
             urls: [configService.getOrThrow<string>('RABBITMQ_URL')],
             queue: 'catalog_queue',
-            queueOptions: {
-              durable: true,
-            },
+            queueOptions: { durable: true },
           },
         }),
         inject: [ConfigService],
-      }
+      },
     ]),
-    CatalogModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [CatalogController],
 })
-export class AppModule {}
+export class CatalogModule {}

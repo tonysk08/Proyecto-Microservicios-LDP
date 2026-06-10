@@ -18,30 +18,32 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a;
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CatalogServiceController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const catalog_service_service_1 = __webpack_require__(/*! ./catalog-service.service */ "./apps/catalog-service/src/catalog-service.service.ts");
+const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
 let CatalogServiceController = class CatalogServiceController {
-    catalogServiceService;
-    constructor(catalogServiceService) {
-        this.catalogServiceService = catalogServiceService;
-    }
-    getHello() {
-        return this.catalogServiceService.getHello();
+    getProducts(data) {
+        console.log('Mensaje recibido en Catalog:', data);
+        return [
+            { id: 1, name: 'Laptop Pro', price: 1200 },
+            { id: 2, name: 'Mouse Gamer', price: 50 },
+        ];
     }
 };
 exports.CatalogServiceController = CatalogServiceController;
 __decorate([
-    (0, common_1.Get)(),
+    (0, microservices_1.MessagePattern)({ cmd: 'get_products' }),
+    __param(0, (0, microservices_1.Payload)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", String)
-], CatalogServiceController.prototype, "getHello", null);
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], CatalogServiceController.prototype, "getProducts", null);
 exports.CatalogServiceController = CatalogServiceController = __decorate([
-    (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof catalog_service_service_1.CatalogServiceService !== "undefined" && catalog_service_service_1.CatalogServiceService) === "function" ? _a : Object])
+    (0, common_1.Controller)()
 ], CatalogServiceController);
 
 
@@ -145,6 +147,16 @@ module.exports = require("@nestjs/config");
 
 module.exports = require("@nestjs/core");
 
+/***/ },
+
+/***/ "@nestjs/microservices"
+/*!****************************************!*\
+  !*** external "@nestjs/microservices" ***!
+  \****************************************/
+(module) {
+
+module.exports = require("@nestjs/microservices");
+
 /***/ }
 
 /******/ 	});
@@ -191,10 +203,20 @@ var exports = __webpack_exports__;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __webpack_require__(/*! @nestjs/core */ "@nestjs/core");
 const catalog_service_module_1 = __webpack_require__(/*! ./catalog-service.module */ "./apps/catalog-service/src/catalog-service.module.ts");
+const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
 async function bootstrap() {
-    const app = await core_1.NestFactory.create(catalog_service_module_1.CatalogServiceModule);
-    await app.listen(process.env.PORT ?? 3000);
-    console.log(`Catalog-Service is running on port ${process.env.PORT}`);
+    const app = await core_1.NestFactory.createMicroservice(catalog_service_module_1.CatalogServiceModule, {
+        transport: microservices_1.Transport.RMQ,
+        options: {
+            urls: [process.env.RABBITMQ_URL ?? 'amqp://localhost:5672'],
+            queue: 'catalog_queue',
+            queueOptions: {
+                durable: true,
+            },
+        },
+    });
+    await app.listen();
+    console.log(`Catalog-Service esta escuchando en RabbitMQ...`);
 }
 bootstrap();
 

@@ -2,51 +2,6 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./apps/api-gateway/src/app.controller.ts"
-/*!************************************************!*\
-  !*** ./apps/api-gateway/src/app.controller.ts ***!
-  \************************************************/
-(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AppController = void 0;
-const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const app_service_1 = __webpack_require__(/*! ./app.service */ "./apps/api-gateway/src/app.service.ts");
-let AppController = class AppController {
-    appService;
-    constructor(appService) {
-        this.appService = appService;
-    }
-    getHello() {
-        return this.appService.getHello();
-    }
-};
-exports.AppController = AppController;
-__decorate([
-    (0, common_1.Get)(),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", String)
-], AppController.prototype, "getHello", null);
-exports.AppController = AppController = __decorate([
-    (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof app_service_1.AppService !== "undefined" && app_service_1.AppService) === "function" ? _a : Object])
-], AppController);
-
-
-/***/ },
-
 /***/ "./apps/api-gateway/src/app.module.ts"
 /*!********************************************!*\
   !*** ./apps/api-gateway/src/app.module.ts ***!
@@ -63,9 +18,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AppModule = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const app_controller_1 = __webpack_require__(/*! ./app.controller */ "./apps/api-gateway/src/app.controller.ts");
-const app_service_1 = __webpack_require__(/*! ./app.service */ "./apps/api-gateway/src/app.service.ts");
 const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
+const catalog_module_1 = __webpack_require__(/*! ./catalog/catalog.module */ "./apps/api-gateway/src/catalog/catalog.module.ts");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -79,19 +34,89 @@ exports.AppModule = AppModule = __decorate([
                     '.env',
                 ],
             }),
+            microservices_1.ClientsModule.registerAsync([
+                {
+                    name: 'CATALOG_SERVICE',
+                    useFactory: (configService) => ({
+                        transport: microservices_1.Transport.RMQ,
+                        options: {
+                            urls: [configService.getOrThrow('RABBITMQ_URL')],
+                            queue: 'catalog_queue',
+                            queueOptions: {
+                                durable: true,
+                            },
+                        },
+                    }),
+                    inject: [config_1.ConfigService],
+                }
+            ]),
+            catalog_module_1.CatalogModule,
         ],
-        controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService],
+        controllers: [],
+        providers: [],
     })
 ], AppModule);
 
 
 /***/ },
 
-/***/ "./apps/api-gateway/src/app.service.ts"
-/*!*********************************************!*\
-  !*** ./apps/api-gateway/src/app.service.ts ***!
-  \*********************************************/
+/***/ "./apps/api-gateway/src/catalog/catalog.controller.ts"
+/*!************************************************************!*\
+  !*** ./apps/api-gateway/src/catalog/catalog.controller.ts ***!
+  \************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CatalogController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const rxjs_1 = __webpack_require__(/*! rxjs */ "rxjs");
+let CatalogController = class CatalogController {
+    client;
+    constructor(client) {
+        this.client = client;
+    }
+    async getProducts() {
+        return (0, rxjs_1.firstValueFrom)(this.client.send({ cmd: 'get_products' }, {}));
+    }
+};
+exports.CatalogController = CatalogController;
+__decorate([
+    (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener productos desde catalog-service' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], CatalogController.prototype, "getProducts", null);
+exports.CatalogController = CatalogController = __decorate([
+    (0, swagger_1.ApiTags)('catalog'),
+    (0, common_1.Controller)('catalog'),
+    __param(0, (0, common_1.Inject)('CATALOG_SERVICE')),
+    __metadata("design:paramtypes", [typeof (_a = typeof microservices_1.ClientProxy !== "undefined" && microservices_1.ClientProxy) === "function" ? _a : Object])
+], CatalogController);
+
+
+/***/ },
+
+/***/ "./apps/api-gateway/src/catalog/catalog.module.ts"
+/*!********************************************************!*\
+  !*** ./apps/api-gateway/src/catalog/catalog.module.ts ***!
+  \********************************************************/
 (__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -102,17 +127,36 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AppService = void 0;
+exports.CatalogModule = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-let AppService = class AppService {
-    getHello() {
-        return 'Hello World! <br> API-GATEWAY';
-    }
+const microservices_1 = __webpack_require__(/*! @nestjs/microservices */ "@nestjs/microservices");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const catalog_controller_1 = __webpack_require__(/*! ./catalog.controller */ "./apps/api-gateway/src/catalog/catalog.controller.ts");
+let CatalogModule = class CatalogModule {
 };
-exports.AppService = AppService;
-exports.AppService = AppService = __decorate([
-    (0, common_1.Injectable)()
-], AppService);
+exports.CatalogModule = CatalogModule;
+exports.CatalogModule = CatalogModule = __decorate([
+    (0, common_1.Module)({
+        imports: [
+            config_1.ConfigModule,
+            microservices_1.ClientsModule.registerAsync([
+                {
+                    name: 'CATALOG_SERVICE',
+                    useFactory: (configService) => ({
+                        transport: microservices_1.Transport.RMQ,
+                        options: {
+                            urls: [configService.getOrThrow('RABBITMQ_URL')],
+                            queue: 'catalog_queue',
+                            queueOptions: { durable: true },
+                        },
+                    }),
+                    inject: [config_1.ConfigService],
+                },
+            ]),
+        ],
+        controllers: [catalog_controller_1.CatalogController],
+    })
+], CatalogModule);
 
 
 /***/ },
@@ -147,6 +191,16 @@ module.exports = require("@nestjs/core");
 
 /***/ },
 
+/***/ "@nestjs/microservices"
+/*!****************************************!*\
+  !*** external "@nestjs/microservices" ***!
+  \****************************************/
+(module) {
+
+module.exports = require("@nestjs/microservices");
+
+/***/ },
+
 /***/ "@nestjs/swagger"
 /*!**********************************!*\
   !*** external "@nestjs/swagger" ***!
@@ -154,6 +208,16 @@ module.exports = require("@nestjs/core");
 (module) {
 
 module.exports = require("@nestjs/swagger");
+
+/***/ },
+
+/***/ "rxjs"
+/*!***********************!*\
+  !*** external "rxjs" ***!
+  \***********************/
+(module) {
+
+module.exports = require("rxjs");
 
 /***/ }
 
@@ -204,6 +268,8 @@ const app_module_1 = __webpack_require__(/*! ./app.module */ "./apps/api-gateway
 const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const server = app.getHttpServer();
+    server.setTimeout(10000);
     app.setGlobalPrefix('api');
     if (process.env.NODE_ENV !== 'production') {
         const options = new swagger_1.DocumentBuilder()
