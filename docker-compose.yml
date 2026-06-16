@@ -20,9 +20,30 @@ services:
       timeout: 10s
       retries: 5
 
+  service-db:
+    image: postgres:16-alpine
+    container_name: Service-DB
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin1234}
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - service_db_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+    networks:
+      - microservices-network
+
+
 volumes:
   rabbitmq_data:
+    name: rabbitmq_data
+  service_db_data:
+    name: service_db_data
 
 networks:
   microservices-network:
+    name: microservices-net
     driver: bridge
