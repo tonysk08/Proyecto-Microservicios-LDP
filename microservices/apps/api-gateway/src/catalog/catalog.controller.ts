@@ -12,10 +12,10 @@ export class CatalogController {
     ){}
 
     @Get()
-    @ApiOperation({ summary: 'Obtener productos desde catalog-service' })
+    @ApiOperation({ summary: 'Obtener listado de catálogos' })
     async getProducts() {
         return firstValueFrom(
-            this.client.send({ cmd: 'get_products' }, {})
+            this.client.send({ cmd: 'get_catalogs' }, {})
         );
     }
 }

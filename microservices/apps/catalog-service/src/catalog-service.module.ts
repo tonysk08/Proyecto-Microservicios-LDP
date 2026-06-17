@@ -3,6 +3,8 @@ import { CatalogServiceController } from './catalog-service.controller';
 import { CatalogServiceService } from './catalog-service.service';
 import { ConfigModule,ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CatalogProductEntity } from './entities/catalog-product.entity';
+import { CatalogRawProductEntity } from './entities/catalog-raw-product.entity';
 
 @Module({
   imports: [
@@ -22,10 +24,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         username: configService.get<string>('CATALOG_DB_USER'),
         password: configService.get<string>('CATALOG_DB_PASSWORD'),
         database: configService.get<string>('CATALOG_DB_NAME'),
+        schema: configService.get<string>('CATALOG_DB_SCHEMA'), 
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: true,  //cambiar a false en producción
       }),
     }),
+    TypeOrmModule.forFeature([CatalogProductEntity, CatalogRawProductEntity]),
   ],
   controllers: [CatalogServiceController],
   providers: [CatalogServiceService],
