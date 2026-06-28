@@ -15,3 +15,37 @@ Arquitectura Backend basada en Microservicios con Scraping Automatizado para el 
 6. Luego normalización básica.
 7. Luego programación automática de scraping.
 8. Luego logs y mejoras.
+
+
+### 7) Siguientes pasos inmediatos desde tu estado actual
+Dado lo que tienes hoy, tus próximos 5 pasos inmediatos deberían ser estos:
+
+1. Documentar contratos de scrape_request y scrape_result
+Porque sin eso vas a construir servicios desconectados.
+
+2. Definir y crear las entidades faltantes
+Prioridad:
+price
+histórico de precios
+matching/equivalencia
+ejecución de scraping
+logs
+
+3. Construir scraping-service en Python
+Es la pieza más crítica para desbloquear el flujo real del negocio.
+
+4. Construir price-service
+Porque varios requerimientos dependen de él:
+
+comparación
+historial
+cotización
+
+5. Expandir api-gateway
+Agregar:
+
+POST /scraping
+GET /catalog
+GET /prices/compare
+GET /prices/history/:id
+POST /basket/quote
