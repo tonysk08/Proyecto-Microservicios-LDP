@@ -27,6 +27,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/catalog-service/tsconfig.app.json"
       }
+    },
+    "price-service": {
+      "type": "application",
+      "root": "apps/price-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/price-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/price-service/tsconfig.app.json"
+      }
     }
   }
 }

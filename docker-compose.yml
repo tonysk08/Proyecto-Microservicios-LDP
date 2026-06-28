@@ -79,6 +79,28 @@ services:
         condition: service_healthy
       service-db:
         condition: service_healthy
+  
+  price-service:
+    build:
+      context: ./microservices
+      dockerfile: apps/price-service/Dockerfile
+    container_name: Price-Service
+    restart: unless-stopped
+    environment:
+      RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      PRICE_DB_HOST: service-db01
+      PRICE_DB_PORT: 5432
+      PRICE_DB_USER: prices_user
+      PRICE_DB_PASSWORD: my_precios_password
+      PRICE_DB_NAME: bd_prices
+      PRICE_DB_SCHEMA: pricing
+    networks:
+      - microservices-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      service-db:
+        condition: service_healthy
 
 volumes:
   rabbitmq_data:
