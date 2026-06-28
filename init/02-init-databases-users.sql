@@ -10,13 +10,13 @@ GRANT ALL ON SCHEMA catalog TO catalog_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA catalog GRANT ALL ON TABLES TO catalog_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA catalog GRANT ALL ON SEQUENCES TO catalog_user;
 
--- === bd_precios ===
-\c bd_precios;
-CREATE USER precios_user WITH PASSWORD 'my_precios_password';
-GRANT ALL PRIVILEGES ON DATABASE bd_precios TO precios_user;
-GRANT ALL ON SCHEMA pricing TO precios_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA pricing GRANT ALL ON TABLES TO precios_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA pricing GRANT ALL ON SEQUENCES TO precios_user;
+-- === bd_prices ===
+\c bd_prices;
+CREATE USER prices_user WITH PASSWORD 'my_precios_password';
+GRANT ALL PRIVILEGES ON DATABASE bd_prices TO prices_user;
+GRANT ALL ON SCHEMA pricing TO prices_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA pricing GRANT ALL ON TABLES TO prices_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA pricing GRANT ALL ON SEQUENCES TO prices_user;
 
 -- === bd_matching ===
 \c bd_matching;

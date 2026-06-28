@@ -1,6 +1,6 @@
 -- Crear bases de datos del sistema de microservicios
 CREATE DATABASE bd_catalogs;
-CREATE DATABASE bd_precios;
+CREATE DATABASE bd_prices;
 CREATE DATABASE bd_matching;
 CREATE DATABASE bd_logs;
 
@@ -10,8 +10,8 @@ CREATE SCHEMA IF NOT EXISTS catalog;
 COMMENT ON SCHEMA catalog IS 'Esquema para productos normalizados del catálogo';
 
 
--- Conectar a bd_precios y crear esquema base
-\c bd_precios;
+-- Conectar a bd_prices y crear esquema base
+\c bd_prices;
 CREATE SCHEMA IF NOT EXISTS pricing;
 COMMENT ON SCHEMA pricing IS 'Esquema para historial de precios';
 
