@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { CatalogServiceModule } from './catalog-service.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(

@@ -1,10 +1,11 @@
 import { 
-            Controller, Get, Patch, Inject, Delete,
+            Controller, Get, Patch, Inject, Delete, Body,
             Query, Param, NotFoundException, 
-            BadRequestException, InternalServerErrorException, ConflictException  
+            BadRequestException, InternalServerErrorException, ConflictException,  
+            Post
         } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { ApiOperation,ApiTags } from '@nestjs/swagger';
+import { ApiOperation,ApiTags,ApiQuery, ApiBody } from '@nestjs/swagger';
 import { firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -17,18 +18,32 @@ export class CatalogController {
     ){}
 
     @Get()
-    @ApiOperation({ summary: 'Obtener listado de catálogos' })
-    async getCatalogs() {
+    @ApiOperation({ summary: 'Obtener listado de catálogos activos' })
+    @ApiQuery({ name: 'includeRaw', required: false, type: Boolean })
+    async getCatalogs(@Query('includeRaw') includeRaw?: string) {
         return firstValueFrom(
-            this.client.send({ cmd: 'get_catalogs' }, {})
+            this.client.send(
+                { cmd: 'get_catalogs' }, 
+                {
+                    isActive: true, 
+                    includeRaw: includeRaw === 'true' 
+                }
+            )
         );
     }
 
     @Get('deactivated')
     @ApiOperation({ summary: 'Obtener listado de catálogos desactivados' })
-    async getCatalogsDeactivated() {
+    @ApiQuery({ name: 'includeRaw', required: false, type: Boolean })
+    async getCatalogsDeactivated(@Query('includeRaw') includeRaw?: string) {
         return firstValueFrom(
-            this.client.send({ cmd: 'get_catalogs_deactivated' }, {})
+            this.client.send(
+                { cmd: 'get_catalogs' }, 
+                {
+                    isActive: false,
+                    includeRaw: includeRaw === 'true',
+                }
+            )
         );
     }
 
@@ -119,5 +134,21 @@ export class CatalogController {
             }
         }),
         );
+    }
+
+    @Post('products')
+    @ApiOperation({ summary: 'Crear un producto en el catálogo' })
+    @ApiBody({
+    schema: {
+        example: {
+        name: 'Arroz 1kg',
+        brand: 'Estrella Azul',
+        category: 'Granos',
+        presentation: '1kg',
+        unit: 'KG',
+        },
+    },
+    })
+    async createProduct(){
     }
 }

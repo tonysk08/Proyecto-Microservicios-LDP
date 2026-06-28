@@ -6,14 +6,13 @@ import { CatalogServiceService } from './catalog-service.service';
 export class CatalogServiceController {
   constructor(private readonly catalogService: CatalogServiceService) {}
 
-  @MessagePattern({cmd: 'get_catalogs'})
-  async getCatalogs() {
-    return this.catalogService.findAll({active: true});
-  }
-
-    @MessagePattern({cmd: 'get_catalogs_deactivated'})
-  async getCatalogsDeactivated() {
-    return this.catalogService.findAll({active: false});
+  @MessagePattern({ cmd: 'get_catalogs' })
+  async getCatalogs(
+  @Payload() data: { isActive?: boolean; includeRaw?: boolean }){
+    return this.catalogService.findAll({
+      isActive: data.isActive ?? true,
+      includeRaw: data.includeRaw ?? false,
+    });
   }
 
   @MessagePattern({cmd: 'search_catalogs'})

@@ -15,12 +15,13 @@ export class CatalogServiceService {
     private readonly catalogProductRepository: Repository<CatalogProductEntity>,
   ) {}
 
-  async findAll({ active }: { active: boolean }) {
+  async findAll(options: { isActive?: boolean; includeRaw?: boolean } = {}) {
+    
+    const { isActive = true, includeRaw = false } = options;
+
     return this.catalogProductRepository.find({
-      relations: {
-        rawItems: true,
-      },
-      where: { isActive: active },
+      relations: includeRaw ? { rawItems: true } : {},
+      where: { isActive },
       order: { createdAt: 'DESC' },
     });
   }
