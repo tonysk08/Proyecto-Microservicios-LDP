@@ -1,10 +1,29 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { CatalogServiceService } from './catalog-service.service';
 
 @Controller()
 export class CatalogServiceController {
   constructor(private readonly catalogService: CatalogServiceService) {}
+
+  // ── Eventos ───────────────────────────────────────────────
+  /** Persiste los productos crudos cuando un scraper publica scraping.completed. */
+  @EventPattern('scraping.completed')
+  async onScrapingCompleted(
+    @Payload()
+    event: {
+      payload?: {
+        rawProducts?: Array<{
+          rawName: string;
+          supermarketId: string;
+          rawBrand?: string | null;
+          sourceUrl?: string | null;
+        }>;
+      };
+    },
+  ): Promise<void> {
+    await this.catalogService.ingestRawProducts(event?.payload?.rawProducts ?? []);
+  }
 
   @MessagePattern({ cmd: 'get_catalogs' })
   async getCatalogs(

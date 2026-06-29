@@ -106,6 +106,24 @@ services:
       service-db:
         condition: service_healthy
 
+  scraper-orchestrator:
+    build:
+      context: ./microservices
+      dockerfile: apps/scraper-orchestrator/Dockerfile
+    container_name: Scraper-Orchestrator
+    restart: unless-stopped
+    environment:
+      RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      ORCHESTRATOR_QUEUE: scraper_orchestrator_queue
+      SCRAPING_EXCHANGE: scraping.exchange
+      SCRAPER_IDS: super99,riba-smith,el-machetazo
+      SCRAPE_TIMEOUT_MS: 120000
+    networks:
+      - microservices-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
   # ─── Scrapers (uno por supermercado, cola independiente) ───
   scraper-super99:
     build:
@@ -119,6 +137,42 @@ services:
       SCRAPER_QUEUE: scraper.super99.queue
       SCRAPING_EXCHANGE: scraping.exchange
       TARGET_URL: https://www.super99.com
+    networks:
+      - microservices-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  scraper-riba-smith:
+    build:
+      context: ./scrapers
+      dockerfile: riba_smith/Dockerfile
+    container_name: Scraper-RibaSmith
+    restart: unless-stopped
+    environment:
+      RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      SCRAPER_ID: riba-smith
+      SCRAPER_QUEUE: scraper.riba-smith.queue
+      SCRAPING_EXCHANGE: scraping.exchange
+      TARGET_URL: https://ribasmith.com
+    networks:
+      - microservices-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  scraper-el-machetazo:
+    build:
+      context: ./scrapers
+      dockerfile: el_machetazo/Dockerfile
+    container_name: Scraper-ElMachetazo
+    restart: unless-stopped
+    environment:
+      RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      SCRAPER_ID: el-machetazo
+      SCRAPER_QUEUE: scraper.el-machetazo.queue
+      SCRAPING_EXCHANGE: scraping.exchange
+      TARGET_URL: https://www.elmachetazo.com
     networks:
       - microservices-network
     depends_on:

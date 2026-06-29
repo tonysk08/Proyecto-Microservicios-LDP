@@ -3,7 +3,6 @@ FROM node:22.14.0-alpine AS builder
 
 WORKDIR /app
 
-#Copia dependiencias primero
 COPY package*.json ./
 COPY nest-cli.json ./
 COPY webpack.config.js ./
@@ -11,28 +10,25 @@ COPY tsconfig*.json ./
 
 RUN npm install
 
-# Copia el código fuente
 COPY apps/ ./apps/
 COPY libs/ ./libs/
 
-# Compila solo el price-service
-RUN npm run build price-service
+RUN npm run build scraper-orchestrator
 
-#------ Stage 2: Producction  ------
+#------ Stage 2: Production  ------
 FROM node:22.14.0-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
 
-#solo instala dependencias de producción
 RUN npm ci --only=production
 
-COPY --from=builder /app/dist/apps/price-service ./dist/apps/price-service
+COPY --from=builder /app/dist/apps/scraper-orchestrator ./dist/apps/scraper-orchestrator
 
 # Usuario no-root
 USER node
 
 # Sin HEALTHCHECK HTTP: microservicio RMQ puro (sin servidor HTTP).
 
-CMD ["node", "dist/apps/price-service/main.js"]
+CMD ["node", "dist/apps/scraper-orchestrator/main.js"]

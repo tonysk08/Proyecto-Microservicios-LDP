@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CatalogModule } from './catalog/catalog.module';
+import { ScrapingModule } from './scraping/scraping.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { CatalogModule } from './catalog/catalog.module';
       ],
     }),
     CatalogModule,
+    ScrapingModule,
   ],
   controllers: [],
   providers: [],

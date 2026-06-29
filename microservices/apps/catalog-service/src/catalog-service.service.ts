@@ -1,11 +1,15 @@
-import { Injectable,HttpStatus } from '@nestjs/common';
+import { Injectable, HttpStatus, Logger } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm';
+import { RawProductStatus } from '@app/shared-contracts';
 import { CatalogProductEntity } from './entities/catalog-product.entity';
+import { CatalogRawProductEntity } from './entities/catalog-raw-product.entity';
 
 @Injectable()
 export class CatalogServiceService {
+
+  private readonly logger = new Logger(CatalogServiceService.name);
 
   // Regex estándar para validar UUID v4
   private readonly UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -13,7 +17,50 @@ export class CatalogServiceService {
   constructor(
     @InjectRepository(CatalogProductEntity)
     private readonly catalogProductRepository: Repository<CatalogProductEntity>,
+    @InjectRepository(CatalogRawProductEntity)
+    private readonly catalogRawProductRepository: Repository<CatalogRawProductEntity>,
   ) {}
+
+  /**
+   * Ingesta los productos crudos de un evento scraping.completed.
+   * Idempotente: ON CONFLICT (supermarket, raw_name) DO NOTHING.
+   */
+  async ingestRawProducts(
+    rawProducts: Array<{
+      rawName: string;
+      supermarketId: string;
+      rawBrand?: string | null;
+      sourceUrl?: string | null;
+    }> = [],
+  ) {
+    if (!rawProducts.length) {
+      return { received: 0, inserted: 0 };
+    }
+
+    const rows = rawProducts
+      .filter((rp) => rp?.rawName && rp?.supermarketId)
+      .map((rp) => ({
+        supermarket: rp.supermarketId,
+        rawName: rp.rawName,
+        rawBrand: rp.rawBrand ?? undefined,
+        url: rp.sourceUrl ?? undefined,
+        status: RawProductStatus.PENDING,
+      }));
+
+    const result = await this.catalogRawProductRepository
+      .createQueryBuilder()
+      .insert()
+      .into(CatalogRawProductEntity)
+      .values(rows)
+      .orIgnore() // ON CONFLICT DO NOTHING (unique supermarket, raw_name)
+      .execute();
+
+    const inserted = result.identifiers.filter(Boolean).length;
+    this.logger.log(
+      `scraping.completed: ${rawProducts.length} recibidos, ${inserted} nuevos insertados`,
+    );
+    return { received: rawProducts.length, inserted };
+  }
 
   async findAll(
     options: {

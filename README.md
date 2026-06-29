@@ -82,6 +82,35 @@ Proyecto-Microservicios-LDP/
 
 ## 5. Arquitectura y bases de datos
 
+### Diagrama de flujo (estado actual)
+
+```
+                    ┌──────────────┐        HTTP / Swagger
+        Cliente ───▶│  API Gateway │◀── http://localhost/api/docs
+                    └──────┬───────┘
+       POST /api/scraping/request │           GET /api/catalog
+                           │ scraping.requested
+                           ▼
+                 ╔═══════════════════════ RabbitMQ (topic exchanges) ═══════════════════════╗
+                 ║  scraping.exchange · products.exchange · pricing.exchange · audit.exchange ║
+                 ╚════┬═══════════════┬═══════════════┬══════════════════════┬═══════════════╝
+                      │ scraping.requested            │ scraping.completed    │  # (tap)
+                      ▼               │               ▼                       ▼
+              ┌───────────────┐      │      ┌──────────────────┐      ┌──────────────┐
+              │  Scraper      │      │      │  Catalog Service │      │ audit_queue  │
+              │  Orchestrator │      │      │  (persiste raw)  │      │ (Audit, fut.)│
+              └──────┬────────┘      │      └────────┬─────────┘      └──────────────┘
+            scrape.<id> │ (cola por súper)           ▼
+        ┌───────────────┼───────────────┐      ┌──────────────┐
+        ▼               ▼               ▼      │  bd_catalogs │
+   ┌─────────┐    ┌──────────┐   ┌────────────┐└──────────────┘
+   │ super99 │    │riba-smith│   │el-machetazo│   pricing_queue / matching_queue
+   │ scraper │    │ scraper  │   │  scraper   │   ───▶ Price / Matching (Sprint 3)
+   └─────────┘    └──────────┘   └────────────┘        └─▶ bd_prices / bd_matching
+        │ scraping.completed (rawProducts)
+        └──────────────────────────────▲ (de vuelta al exchange)
+```
+
 Cada microservicio es dueño de su propia base de datos (no comparten tablas):
 
 | Base de datos | Esquema | Servicio | Usuario |
@@ -99,6 +128,24 @@ Puertos publicados por `docker-compose`:
 | RabbitMQ | `5672` | Broker AMQP |
 | RabbitMQ (UI) | `15672` | Consola de administración |
 | PostgreSQL | `5432` | Base de datos |
+
+### Eventos del sistema (contratos en `@app/shared-contracts`)
+
+Mensajería event-driven con envoltura `BaseEvent` (`eventId`, `eventType`, `timestamp`, `correlationId`, `payload`):
+
+| Evento | Lo publica | Lo consume |
+|---|---|---|
+| `scraping.requested` | API Gateway / Scheduler | Scraper Orchestrator |
+| `scraping.started` | Scraper / Orchestrator | Audit (tap) |
+| `scraping.completed` | Scrapers | Catalog, Pricing, Matching, Audit |
+| `scraping.failed` | Scraper / Orchestrator (timeout) | Audit (→ DLQ) |
+| `product.normalized` | Matching (futuro) | Pricing, Audit |
+| `price.created` / `price.updated` | Pricing (futuro) | Catalog, Audit |
+| `quote.generated` | Pricing (futuro) | Audit |
+| `audit.created` | Cualquier servicio | Audit Service |
+
+> Detalle de exchanges, colas, bindings y DLQ en [docs/EVENT_ARCHITECTURE.md](docs/EVENT_ARCHITECTURE.md).
+> Cómo probar el flujo desde Swagger: [docs/GUIA_PRUEBAS_SWAGGER.md](docs/GUIA_PRUEBAS_SWAGGER.md).
 
 ---
 

@@ -15,7 +15,7 @@ RUN npm install
 COPY apps/ ./apps/
 COPY libs/ ./libs/
 
-# Compila solo el api-gateway
+# Compila solo el catalog-service
 RUN npm run build catalog-service
 
 #------ Stage 2: Producction  ------
@@ -29,5 +29,11 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 COPY --from=builder /app/dist/apps/catalog-service ./dist/apps/catalog-service
+
+# Usuario no-root
+USER node
+
+# Sin HEALTHCHECK HTTP: es un microservicio RMQ puro (sin servidor HTTP).
+# La liveness la cubre `restart: unless-stopped` + healthcheck de RabbitMQ.
 
 CMD ["node", "dist/apps/catalog-service/main.js"]
