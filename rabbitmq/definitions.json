@@ -1,0 +1,36 @@
+{
+  "exchanges": [
+    { "name": "scraping.exchange", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
+    { "name": "products.exchange", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
+    { "name": "pricing.exchange", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
+    { "name": "quotes.exchange", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
+    { "name": "audit.exchange", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
+    { "name": "dlq.scraping.exchange", "vhost": "/", "type": "fanout", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
+    { "name": "dlq.products.exchange", "vhost": "/", "type": "fanout", "durable": true, "auto_delete": false, "internal": false, "arguments": {} }
+  ],
+  "queues": [
+    { "name": "scraper_orchestrator_queue", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "dlq.scraping.exchange" } },
+    { "name": "pricing_queue", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "dlq.products.exchange" } },
+    { "name": "matching_queue", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "dlq.products.exchange" } },
+    { "name": "audit_queue", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {} },
+    { "name": "dlq_scraping", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {} },
+    { "name": "dlq_products", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {} }
+  ],
+  "bindings": [
+    { "source": "scraping.exchange", "vhost": "/", "destination": "scraper_orchestrator_queue", "destination_type": "queue", "routing_key": "scraping.requested", "arguments": {} },
+    { "source": "scraping.exchange", "vhost": "/", "destination": "pricing_queue", "destination_type": "queue", "routing_key": "scraping.completed", "arguments": {} },
+    { "source": "scraping.exchange", "vhost": "/", "destination": "matching_queue", "destination_type": "queue", "routing_key": "scraping.completed", "arguments": {} },
+
+    { "source": "products.exchange", "vhost": "/", "destination": "pricing_queue", "destination_type": "queue", "routing_key": "product.normalized", "arguments": {} },
+    { "source": "products.exchange", "vhost": "/", "destination": "matching_queue", "destination_type": "queue", "routing_key": "product.normalized", "arguments": {} },
+
+    { "source": "scraping.exchange", "vhost": "/", "destination": "audit_queue", "destination_type": "queue", "routing_key": "#", "arguments": {} },
+    { "source": "products.exchange", "vhost": "/", "destination": "audit_queue", "destination_type": "queue", "routing_key": "#", "arguments": {} },
+    { "source": "pricing.exchange", "vhost": "/", "destination": "audit_queue", "destination_type": "queue", "routing_key": "#", "arguments": {} },
+    { "source": "quotes.exchange", "vhost": "/", "destination": "audit_queue", "destination_type": "queue", "routing_key": "#", "arguments": {} },
+    { "source": "audit.exchange", "vhost": "/", "destination": "audit_queue", "destination_type": "queue", "routing_key": "#", "arguments": {} },
+
+    { "source": "dlq.scraping.exchange", "vhost": "/", "destination": "dlq_scraping", "destination_type": "queue", "routing_key": "", "arguments": {} },
+    { "source": "dlq.products.exchange", "vhost": "/", "destination": "dlq_products", "destination_type": "queue", "routing_key": "", "arguments": {} }
+  ]
+}

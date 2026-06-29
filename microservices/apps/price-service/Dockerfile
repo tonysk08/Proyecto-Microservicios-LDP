@@ -12,7 +12,7 @@ RUN npm install
 
 # Copia el código fuente
 COPY apps/ ./apps/
-#COPY libs/ ./libs/
+COPY libs/ ./libs/
 
 # Compila solo el api-gateway
 RUN npm run build price-service
