@@ -131,4 +131,34 @@ mensaje es rechazado (`nack` sin requeue) o expira, RabbitMQ lo enruta a la DLQ 
 
 ---
 
+---
+
+## 7. Resiliencia: ack manual, DLQ y reintentos (LDP-022)
+
+**Consumidores de eventos** (pricing, matching, orchestrator, audit): se configuran con
+`noAck:false` (ack manual) para garantizar *at-least-once*. El procesamiento usa el helper
+`consumeWithDlq` de `@app/common`:
+
+- éxito → `ack`.
+- fallo → `nack` **sin requeue** → el mensaje cae a la **DLQ** de la cola
+  (`x-dead-letter-exchange`, definido en `definitions.json`: `dlq.scraping.exchange` /
+  `dlq.products.exchange` → `dlq_scraping` / `dlq_products`).
+
+> ⚠️ **Las colas RPC** (`catalog_queue`, `price_queue`, request/response del gateway) **no**
+> usan ack manual ni DLQ: los errores se devuelven al llamador como `RpcException`. El ack
+> manual solo aplica a los consumidores de eventos.
+
+### Reintentos con backoff (plan)
+Para evitar el anti-patrón de *requeue* inmediato (hot-loop), el reintento con backoff se hará
+con una **retry-queue + TTL**: la cola de reintento hace dead-letter de vuelta a la de trabajo tras
+`computeBackoffMs(attempt)`; superado `DEFAULT_MAX_RETRIES`, el mensaje va a la DLQ definitiva y
+se registra en auditoría (`audit.created`). Helpers ya disponibles en `@app/common`
+(`computeBackoffMs`, `getDeathCount`, `DEFAULT_MAX_RETRIES`).
+
+**Estado:** infra DLQ + helper `consumeWithDlq` listos; el cableado vivo (retry-queue + audit)
+se hará al implementar los consumidores de eventos y el audit-service (Sprint 2/3:
+LDP-051/062/100).
+
+---
+
 *Materialización concreta de esta topología → `rabbitmq/definitions.json` (LDP-021), montado en el contenedor de RabbitMQ vía `docker-compose.yml`.*

@@ -15,15 +15,48 @@ export class CatalogServiceService {
     private readonly catalogProductRepository: Repository<CatalogProductEntity>,
   ) {}
 
-  async findAll(options: { isActive?: boolean; includeRaw?: boolean } = {}) {
-    
-    const { isActive = true, includeRaw = false } = options;
+  async findAll(
+    options: {
+      page?: number;
+      limit?: number;
+      category?: string;
+      isActive?: boolean;
+      includeRaw?: boolean;
+    } = {},
+  ) {
+    const { category, isActive = true, includeRaw = false } = options;
 
-    return this.catalogProductRepository.find({
-      relations: includeRaw ? { rawItems: true } : {},
-      where: { isActive },
-      order: { createdAt: 'DESC' },
-    });
+    // Saneo de paginación: page >= 1, 1 <= limit <= 100
+    const page = Math.max(1, Number(options.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(options.limit) || 20));
+
+    const query = this.catalogProductRepository
+      .createQueryBuilder('p')
+      .where('p.isActive = :isActive', { isActive });
+
+    if (includeRaw) {
+      query.leftJoinAndSelect('p.rawItems', 'raw');
+    }
+
+    if (category) {
+      query.andWhere('LOWER(p.category) = LOWER(:category)', { category });
+    }
+
+    const [items, total] = await query
+      .orderBy('p.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: items,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async searchProducts(query: string) {

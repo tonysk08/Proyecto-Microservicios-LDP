@@ -8,8 +8,19 @@ export class CatalogServiceController {
 
   @MessagePattern({ cmd: 'get_catalogs' })
   async getCatalogs(
-  @Payload() data: { isActive?: boolean; includeRaw?: boolean }){
+    @Payload()
+    data: {
+      page?: number;
+      limit?: number;
+      category?: string;
+      isActive?: boolean;
+      includeRaw?: boolean;
+    },
+  ) {
     return this.catalogService.findAll({
+      page: data.page ?? 1,
+      limit: data.limit ?? 20,
+      category: data.category,
       isActive: data.isActive ?? true,
       includeRaw: data.includeRaw ?? false,
     });

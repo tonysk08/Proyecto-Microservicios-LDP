@@ -6,6 +6,7 @@ WORKDIR /app
 #Copia dependiencias primero
 COPY package*.json ./
 COPY nest-cli.json ./
+COPY webpack.config.js ./
 COPY tsconfig*.json ./
 
 RUN npm install

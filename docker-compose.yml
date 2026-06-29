@@ -68,6 +68,7 @@ services:
     restart: unless-stopped
     environment:
       RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      CATALOG_QUEUE: catalog_queue
       CATALOG_DB_HOST: service-db01
       CATALOG_DB_PORT: 5432
       CATALOG_DB_USER: catalog_user
@@ -90,6 +91,7 @@ services:
     restart: unless-stopped
     environment:
       RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      PRICE_QUEUE: price_queue
       PRICE_DB_HOST: service-db01
       PRICE_DB_PORT: 5432
       PRICE_DB_USER: prices_user
@@ -102,6 +104,25 @@ services:
       rabbitmq:
         condition: service_healthy
       service-db:
+        condition: service_healthy
+
+  # ─── Scrapers (uno por supermercado, cola independiente) ───
+  scraper-super99:
+    build:
+      context: ./scrapers
+      dockerfile: super99/Dockerfile
+    container_name: Scraper-Super99
+    restart: unless-stopped
+    environment:
+      RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      SCRAPER_ID: super99
+      SCRAPER_QUEUE: scraper.super99.queue
+      SCRAPING_EXCHANGE: scraping.exchange
+      TARGET_URL: https://www.super99.com
+    networks:
+      - microservices-network
+    depends_on:
+      rabbitmq:
         condition: service_healthy
 
 volumes:

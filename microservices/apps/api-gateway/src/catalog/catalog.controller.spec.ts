@@ -21,22 +21,31 @@ describe('CatalogController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('getCatalogs() envía el comando get_catalogs con includeRaw=true', async () => {
-    const result = await controller.getCatalogs('true');
+  it('getCatalogs() envía get_catalogs con paginación, categoría e includeRaw', async () => {
+    const result = await controller.getCatalogs('2', '5', 'Lácteos', 'true');
 
     expect(client.send).toHaveBeenCalledWith(
       { cmd: 'get_catalogs' },
-      { isActive: true, includeRaw: true },
+      { page: 2, limit: 5, category: 'Lácteos', isActive: true, includeRaw: true },
     );
     expect(result).toEqual([]);
   });
 
-  it('getCatalogsDeactivated() envía get_catalogs con isActive=false', async () => {
-    await controller.getCatalogsDeactivated('false');
+  it('getCatalogs() usa valores por defecto sin query params', async () => {
+    await controller.getCatalogs();
 
     expect(client.send).toHaveBeenCalledWith(
       { cmd: 'get_catalogs' },
-      { isActive: false, includeRaw: false },
+      { page: 1, limit: 20, category: undefined, isActive: true, includeRaw: false },
+    );
+  });
+
+  it('getCatalogsDeactivated() envía get_catalogs con isActive=false', async () => {
+    await controller.getCatalogsDeactivated();
+
+    expect(client.send).toHaveBeenCalledWith(
+      { cmd: 'get_catalogs' },
+      { page: 1, limit: 20, category: undefined, isActive: false, includeRaw: false },
     );
   });
 

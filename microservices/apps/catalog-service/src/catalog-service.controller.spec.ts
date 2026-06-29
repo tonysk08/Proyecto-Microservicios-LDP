@@ -35,22 +35,40 @@ describe('CatalogServiceController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('getCatalogs() delega en findAll con los flags por defecto', async () => {
-    const expected = [{ id: '1' }];
+  it('getCatalogs() delega en findAll con valores por defecto (paginación)', async () => {
+    const expected = { data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 } };
     service.findAll.mockResolvedValue(expected);
 
     const result = await controller.getCatalogs({});
 
-    expect(service.findAll).toHaveBeenCalledWith({ isActive: true, includeRaw: false });
+    expect(service.findAll).toHaveBeenCalledWith({
+      page: 1,
+      limit: 20,
+      category: undefined,
+      isActive: true,
+      includeRaw: false,
+    });
     expect(result).toBe(expected);
   });
 
-  it('getCatalogs() respeta los flags recibidos', async () => {
-    service.findAll.mockResolvedValue([]);
+  it('getCatalogs() reenvía paginación y filtros', async () => {
+    service.findAll.mockResolvedValue({ data: [], meta: {} });
 
-    await controller.getCatalogs({ isActive: false, includeRaw: true });
+    await controller.getCatalogs({
+      page: 2,
+      limit: 5,
+      category: 'Lácteos',
+      isActive: false,
+      includeRaw: true,
+    });
 
-    expect(service.findAll).toHaveBeenCalledWith({ isActive: false, includeRaw: true });
+    expect(service.findAll).toHaveBeenCalledWith({
+      page: 2,
+      limit: 5,
+      category: 'Lácteos',
+      isActive: false,
+      includeRaw: true,
+    });
   });
 
   it('getCatalogById() delega en findById con el id', async () => {

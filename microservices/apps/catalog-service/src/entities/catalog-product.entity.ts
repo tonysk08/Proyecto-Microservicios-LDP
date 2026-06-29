@@ -1,6 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  Index,
+  Unique,
+} from 'typeorm';
 import { CatalogRawProductEntity } from './catalog-raw-product.entity';
 
+@Index(['name', 'brand', 'presentation'])
+@Index(['category'])
+@Index(['isActive'])
+@Unique(['name', 'brand', 'presentation', 'unit'])
 @Entity({ name: 'catalog_products', schema: 'catalog' })
 export class CatalogProductEntity {
   @PrimaryGeneratedColumn('uuid')
