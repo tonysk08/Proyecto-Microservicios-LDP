@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PriceServiceController } from './price-service.controller';
 import { PriceServiceService } from './price-service.service';
+import { PriceHistoryEntity } from './entities/price-history.entity';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { PriceServiceService } from './price-service.service';
         synchronize: true,  //cambiar a false en producción
       }),
     }),
+    TypeOrmModule.forFeature([PriceHistoryEntity]),
   ],
   controllers: [PriceServiceController],
   providers: [PriceServiceService],

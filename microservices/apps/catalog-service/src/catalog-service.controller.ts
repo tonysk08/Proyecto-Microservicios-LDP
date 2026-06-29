@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CatalogServiceService } from './catalog-service.service';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller()
 export class CatalogServiceController {
