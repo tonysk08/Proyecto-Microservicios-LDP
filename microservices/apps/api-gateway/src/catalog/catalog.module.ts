@@ -22,5 +22,6 @@ import { CatalogController } from './catalog.controller';
     ]),
   ],
   controllers: [CatalogController],
+  exports: [ClientsModule],
 })
 export class CatalogModule {}

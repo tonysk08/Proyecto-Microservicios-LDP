@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule,ConfigService } from '@nestjs/config';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ConfigModule } from '@nestjs/config';
 import { CatalogModule } from './catalog/catalog.module';
 
 @Module({
@@ -12,22 +11,6 @@ import { CatalogModule } from './catalog/catalog.module';
         '.env',
       ],
     }),
-    ClientsModule.registerAsync([
-      {
-        name: 'CATALOG_SERVICE',
-        useFactory: (configService: ConfigService) => ({
-          transport: Transport.RMQ,
-          options: {
-            urls: [configService.getOrThrow<string>('RABBITMQ_URL')],
-            queue: 'catalog_queue',
-            queueOptions: {
-              durable: true,
-            },
-          },
-        }),
-        inject: [ConfigService],
-      }
-    ]),
     CatalogModule,
   ],
   controllers: [],
