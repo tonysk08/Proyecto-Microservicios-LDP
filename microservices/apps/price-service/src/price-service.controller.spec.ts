@@ -3,20 +3,24 @@ import { PriceServiceController } from './price-service.controller';
 import { PriceServiceService } from './price-service.service';
 
 describe('PriceServiceController', () => {
-  let priceServiceController: PriceServiceController;
+  let controller: PriceServiceController;
 
   beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [PriceServiceController],
-      providers: [PriceServiceService],
+      providers: [
+        { provide: PriceServiceService, useValue: { getHello: jest.fn().mockReturnValue('pong') } },
+      ],
     }).compile();
 
-    priceServiceController = app.get<PriceServiceController>(PriceServiceController);
+    controller = module.get<PriceServiceController>(PriceServiceController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(priceServiceController.getHello()).toBe('Hello World!');
-    });
+  it('debería estar definido', () => {
+    expect(controller).toBeDefined();
+  });
+
+  it('getHello() delega en el service', () => {
+    expect(controller.getHello()).toBe('pong');
   });
 });
