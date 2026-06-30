@@ -43,7 +43,7 @@
     { "source": "scraping.exchange", "vhost": "/", "destination": "scraper_orchestrator_queue", "destination_type": "queue", "routing_key": "scraping.completed", "arguments": {} },
 
     { "source": "products.exchange", "vhost": "/", "destination": "pricing_queue", "destination_type": "queue", "routing_key": "product.normalized", "arguments": {} },
-    { "source": "products.exchange", "vhost": "/", "destination": "matching_queue", "destination_type": "queue", "routing_key": "product.normalized", "arguments": {} },
+    { "source": "products.exchange", "vhost": "/", "destination": "catalog_queue", "destination_type": "queue", "routing_key": "product.normalized", "arguments": {} },
 
     { "source": "scraping.exchange", "vhost": "/", "destination": "audit_queue", "destination_type": "queue", "routing_key": "#", "arguments": {} },
     { "source": "products.exchange", "vhost": "/", "destination": "audit_queue", "destination_type": "queue", "routing_key": "#", "arguments": {} },

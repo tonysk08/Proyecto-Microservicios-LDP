@@ -60,3 +60,21 @@ export async function consumeWithDlq(
     channel.nack(message, false, false);
   }
 }
+
+/**
+ * Ejecuta un handler RPC (@MessagePattern) sobre una cola con ack manual
+ * (`noAck:false`): siempre confirma el mensaje de la petición (la respuesta —
+ * éxito o error — la envía NestJS al `replyTo` del llamador).
+ */
+export async function handleRpc<T>(
+  context: RmqContext,
+  handler: () => Promise<T>,
+): Promise<T> {
+  const channel = context.getChannelRef();
+  const message = context.getMessage();
+  try {
+    return await handler();
+  } finally {
+    channel.ack(message);
+  }
+}

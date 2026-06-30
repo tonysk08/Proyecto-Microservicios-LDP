@@ -4,16 +4,18 @@ import {
   Column,
   CreateDateColumn,
   Index,
+  Unique,
 } from 'typeorm';
 
 /**
- * Equivalencia entre un producto crudo (catalog_raw_products) y uno normalizado
- * (catalog_products). Referencias LÓGICAS (sin FK cross-service).
+ * Equivalencia entre un producto crudo y uno normalizado del catálogo.
+ * Referencias LÓGICAS (sin FK cross-service).
  *
- * NOTA: esta entidad define el modelo de datos de bd_matching (LDP-044). Su
- * migración y wiring se realizarán al scaffoldear el matching-service (LDP-060).
+ * `rawProductId` guarda la referencia lógica del producto crudo
+ * (`${supermarketId}:${rawName}`), ya que el matching no tiene el id físico
+ * de catalog_raw_products. Único por esa referencia (idempotencia).
  */
-@Index(['rawProductId'])
+@Unique(['rawProductId'])
 @Index(['catalogProductId'])
 @Index(['confidenceScore'])
 @Entity({ name: 'product_matches', schema: 'matching' })

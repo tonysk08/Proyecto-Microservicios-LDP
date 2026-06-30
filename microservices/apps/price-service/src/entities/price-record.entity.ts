@@ -18,8 +18,11 @@ export class PriceRecordEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'catalog_product_id' })
-  catalogProductId: string;
+  @Column({ name: 'catalog_product_id', type: 'uuid', nullable: true })
+  catalogProductId: string | null; // lo rellena el matching más adelante
+
+  @Column({ name: 'raw_name', type: 'varchar', nullable: true })
+  rawName: string | null; // identidad del producto tal cual lo trajo el scraper
 
   @Column({ name: 'supermarket_id', length: 50 })
   supermarketId: string;
@@ -30,8 +33,8 @@ export class PriceRecordEntity {
   @Column({ length: 3, default: 'USD' })
   currency: string;
 
-  @Column({ name: 'source_url', nullable: true })
-  sourceUrl: string;
+  @Column({ name: 'source_url', type: 'varchar', nullable: true })
+  sourceUrl: string | null;
 
   @Column({ name: 'scraped_at', type: 'timestamp' })
   scrapedAt: Date;

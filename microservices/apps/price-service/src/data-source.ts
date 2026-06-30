@@ -5,6 +5,7 @@ import { PriceRecordEntity } from './entities/price-record.entity';
 import { PriceSnapshotEntity } from './entities/price-snapshot.entity';
 import { InitPricingSchema1700000000100 } from './migrations/1700000000100-InitPricingSchema';
 import { SeedPricing1700000000101 } from './migrations/1700000000101-SeedPricing';
+import { AddRawRefToPricing1700000000102 } from './migrations/1700000000102-AddRawRefToPricing';
 
 // Fuente de datos para el CLI de TypeORM (generar/ejecutar migraciones).
 config({ path: 'apps/price-service/.env' });
@@ -18,5 +19,9 @@ export default new DataSource({
   database: process.env.PRICE_DB_NAME,
   schema: process.env.PRICE_DB_SCHEMA,
   entities: [PriceRecordEntity, PriceSnapshotEntity],
-  migrations: [InitPricingSchema1700000000100, SeedPricing1700000000101],
+  migrations: [
+    InitPricingSchema1700000000100,
+    SeedPricing1700000000101,
+    AddRawRefToPricing1700000000102,
+  ],
 });

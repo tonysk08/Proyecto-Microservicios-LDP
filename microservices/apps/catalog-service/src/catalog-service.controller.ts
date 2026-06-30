@@ -25,6 +25,28 @@ export class CatalogServiceController {
     await this.catalogService.ingestRawProducts(event?.payload?.rawProducts ?? []);
   }
 
+  /** Marca el producto crudo como emparejado cuando matching publica product.normalized. */
+  @EventPattern('product.normalized')
+  async onProductNormalized(
+    @Payload()
+    event: {
+      payload?: {
+        supermarketId?: string;
+        rawName?: string;
+        catalogProductId?: string;
+      };
+    },
+  ): Promise<void> {
+    const p = event?.payload;
+    if (p?.supermarketId && p?.rawName && p?.catalogProductId) {
+      await this.catalogService.markRawMatched(
+        p.supermarketId,
+        p.rawName,
+        p.catalogProductId,
+      );
+    }
+  }
+
   @MessagePattern({ cmd: 'get_catalogs' })
   async getCatalogs(
     @Payload()

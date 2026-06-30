@@ -24,8 +24,8 @@ export class EventLogEntity {
   @Column({ name: 'event_type', length: 100 })
   eventType: string; // 'scraping.completed', 'price.created', ...
 
-  @Column({ name: 'correlation_id', nullable: true })
-  correlationId: string;
+  @Column({ name: 'correlation_id', type: 'varchar', nullable: true })
+  correlationId: string | null;
 
   @Column({ name: 'service_name', length: 50 })
   serviceName: string;

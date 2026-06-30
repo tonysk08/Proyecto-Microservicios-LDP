@@ -62,6 +62,32 @@ export class CatalogServiceService {
     return { received: rawProducts.length, inserted };
   }
 
+  /**
+   * Enlaza un producto crudo con su producto normalizado y lo marca como matched.
+   * (Consumido desde product.normalized del matching-service.)
+   */
+  async markRawMatched(
+    supermarketId: string,
+    rawName: string,
+    catalogProductId: string,
+  ) {
+    const result = await this.catalogRawProductRepository
+      .createQueryBuilder()
+      .update(CatalogRawProductEntity)
+      .set({
+        normalizedProduct: { id: catalogProductId },
+        status: RawProductStatus.MATCHED,
+      })
+      .where('supermarket = :supermarketId AND raw_name = :rawName', {
+        supermarketId,
+        rawName,
+      })
+      .execute();
+    this.logger.log(
+      `product.normalized: ${supermarketId}/${rawName} → matched (${result.affected ?? 0})`,
+    );
+  }
+
   async findAll(
     options: {
       page?: number;

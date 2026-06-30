@@ -35,8 +35,8 @@ USER node
 
 EXPOSE 3000
 
-# Healthcheck HTTP (Swagger JSON disponible en entornos no productivos)
+# Healthcheck HTTP contra /api/health
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD wget -q -O- http://localhost:3000/api/docs-json > /dev/null 2>&1 || exit 1
+  CMD wget -q -O- http://localhost:3000/api/health > /dev/null 2>&1 || exit 1
 
 CMD ["node", "dist/apps/api-gateway/main.js"]

@@ -11,7 +11,7 @@ import {
  * Último precio conocido por producto/supermercado (para queries rápidas
  * de comparación). Único por (catalogProductId, supermarketId).
  */
-@Unique(['catalogProductId', 'supermarketId'])
+@Unique(['supermarketId', 'rawName'])
 @Index(['catalogProductId'])
 @Index(['supermarketId'])
 @Entity({ name: 'price_snapshots', schema: 'pricing' })
@@ -19,8 +19,11 @@ export class PriceSnapshotEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'catalog_product_id' })
-  catalogProductId: string;
+  @Column({ name: 'catalog_product_id', type: 'uuid', nullable: true })
+  catalogProductId: string | null;
+
+  @Column({ name: 'raw_name', type: 'varchar', nullable: true })
+  rawName: string | null;
 
   @Column({ name: 'supermarket_id', length: 50 })
   supermarketId: string;

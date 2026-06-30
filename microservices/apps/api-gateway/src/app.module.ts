@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CatalogModule } from './catalog/catalog.module';
 import { ScrapingModule } from './scraping/scraping.module';
+import { PricingModule } from './pricing/pricing.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -14,8 +16,9 @@ import { ScrapingModule } from './scraping/scraping.module';
     }),
     CatalogModule,
     ScrapingModule,
+    PricingModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}

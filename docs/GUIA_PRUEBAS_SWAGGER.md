@@ -113,9 +113,30 @@ trae su arreglo `rawItems`, y además puedes consultar los productos crudos reci
 | `PATCH` | `/api/catalog/{id}/deactivate` | Desactivar un producto |
 | `PATCH` | `/api/catalog/{id}/activate` | Activar un producto |
 | `DELETE`| `/api/catalog/products/{id}` | Eliminar (solo si está desactivado) |
+| `GET` | `/api/pricing/compare?productId=` | Comparar el precio de un producto entre supermercados |
+| `GET` | `/api/pricing/history?productId=&limit=` | Histórico de precios de un producto |
+| `POST` | `/api/quotes` | Cotizar una canasta (total por supermercado + recomendación) |
+| `GET` | `/api/health` | Estado de salud del gateway (liveness) |
 
-> Aún **no** están expuestos por Swagger los endpoints de precios/comparación/cotización
-> (Sprint 4: LDP-052/053/054/112). Los datos de precios ya existen en la BD (`bd_prices`).
+### Probar la comparación de precios
+
+Tras un scraping (Paso 1), los productos de distintos supermercados quedan **emparejados**
+al mismo producto del catálogo (matching), lo que habilita la comparación:
+
+1. Copia un `id` de producto desde `GET /api/catalog` (ej. el arroz o la leche).
+2. **`GET /api/pricing/compare?productId=<id>`** → precios por supermercado + el más barato + % de diferencia.
+3. **`GET /api/pricing/history?productId=<id>`** → evolución del precio.
+4. **`POST /api/quotes`** con una canasta:
+   ```json
+   { "items": [
+       { "catalogProductId": "<id-arroz>", "quantity": 2 },
+       { "catalogProductId": "<id-leche>", "quantity": 1 }
+   ] }
+   ```
+   → total por supermercado y cuál conviene.
+
+> 💡 Si la comparación sale vacía, asegúrate de haber disparado un scraping antes
+> (los precios y el emparejamiento se generan a partir de `scraping.completed`).
 
 ---
 
@@ -142,6 +163,9 @@ docker exec Service-DB psql -U admin -d bd_catalogs -c "SELECT supermarket, coun
 
 # Precios (dominio del pricing-service)
 docker exec Service-DB psql -U admin -d bd_prices -c "SELECT supermarket_id, current_price FROM pricing.price_snapshots LIMIT 10;"
+
+# Auditoría: todos los eventos del sistema quedan registrados (audit-service)
+docker exec Service-DB psql -U admin -d bd_logs -c "SELECT event_type, count(*) FROM audit.event_logs GROUP BY event_type ORDER BY event_type;"
 ```
 
 ---
