@@ -1,24 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { PriceServiceModule } from './../src/price-service.module';
-
-describe('PriceServiceController (e2e)', () => {
-  let app: INestApplication;
-
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [PriceServiceModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
-  });
-
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+/**
+ * E2E del Price Service.
+ *
+ * El price-service es un microservicio RMQ puro (sin servidor HTTP), por lo que
+ * el boilerplate `GET /` → "Hello World!" no aplica. La prueba E2E real
+ * (mensajes RabbitMQ contra el stack levantado con `docker-compose up`) se
+ * implementará junto con la lógica real del servicio (LDP-050b / LDP-133).
+ */
+describe.skip('Price Service (e2e RMQ)', () => {
+  it('pendiente (LDP-050b/LDP-133): validar precios contra el broker', () => {
+    expect(true).toBe(true);
   });
 });

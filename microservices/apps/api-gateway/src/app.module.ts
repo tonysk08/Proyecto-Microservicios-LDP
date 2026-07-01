@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule,ConfigService } from '@nestjs/config';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { CatalogModule } from './catalog/catalog.module';
+import { ScrapingModule } from './scraping/scraping.module';
 import { PricingModule } from './pricing/pricing.module';
+import { HealthController } from './health/health.controller';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -44,9 +46,10 @@ import { PricingModule } from './pricing/pricing.module';
       },
     ]),
     CatalogModule,
+    ScrapingModule,
     PricingModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}

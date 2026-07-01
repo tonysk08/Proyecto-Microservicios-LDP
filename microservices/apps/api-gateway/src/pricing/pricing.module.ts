@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PricingController } from './pricing.controller';
+import { QuotesController } from './quotes.controller';
 
 @Module({
   imports: [
@@ -9,18 +10,20 @@ import { PricingController } from './pricing.controller';
     ClientsModule.registerAsync([
       {
         name: 'PRICE_SERVICE',
+        inject: [ConfigService],
         useFactory: (configService: ConfigService) => ({
           transport: Transport.RMQ,
           options: {
             urls: [configService.getOrThrow<string>('RABBITMQ_URL')],
-            queue: 'price_queue',
+            queue: configService.getOrThrow<string>('PRICING_QUEUE'),
             queueOptions: { durable: true },
+            // La cola está predeclarada (con DLX) en definitions.json
+            noAssert: true,
           },
         }),
-        inject: [ConfigService],
       },
     ]),
   ],
-  controllers: [PricingController],
+  controllers: [PricingController, QuotesController],
 })
 export class PricingModule {}

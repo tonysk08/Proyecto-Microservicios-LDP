@@ -1,0 +1,6 @@
+[
+  { "raw_name": "Leche Entera Nevada 946 ml", "raw_brand": "Nevada", "price": 1.55, "unit": "ml", "category": "Lácteos" },
+  { "raw_name": "Leche Entera La Chiricana 946 ml", "raw_brand": "La Chiricana", "price": 1.62, "unit": "ml", "category": "Lácteos" },
+  { "raw_name": "Arrossisimo Especial 2 kg", "raw_brand": "Arrossisimo", "price": 3.45, "unit": "kg", "category": "Granos" },
+  { "raw_name": "Aceite Vegetal Nutrioli 1 L", "raw_brand": "Nutrioli", "price": 3.15, "unit": "l", "category": "Aceites" }
+]

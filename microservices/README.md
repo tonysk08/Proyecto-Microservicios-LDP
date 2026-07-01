@@ -31,6 +31,35 @@
 $ npm install
 ```
 
+## Configuración de entorno (.env)
+
+Cada aplicación carga su propio `.env`. Antes de arrancar, copia los ejemplos:
+
+```bash
+# API Gateway
+$ cp apps/api-gateway/.env.example apps/api-gateway/.env
+
+# Catalog Service
+$ cp apps/catalog-service/.env.example apps/catalog-service/.env
+```
+
+> ⚠️ **`RABBITMQ_URL` es obligatoria para el API Gateway.** Si falta, el arranque
+> falla con `TypeError: Configuration key "RABBITMQ_URL" does not exist`.
+> El valor por defecto (`amqp://admin:admin1234@localhost:5672`) coincide con las
+> credenciales de `docker-compose.yml`. Levanta primero la infraestructura:
+
+```bash
+$ docker-compose up -d rabbitmq service-db
+```
+
+| Variable | Servicio | Requerida | Descripción |
+|---|---|---|---|
+| `PORT` | api-gateway | No (def. 3000) | Puerto HTTP del gateway |
+| `NODE_ENV` | ambos | No | `development` habilita Swagger en `/api/docs` |
+| `RABBITMQ_URL` | api-gateway | **Sí** | Conexión AMQP al broker |
+| `CATALOG_QUEUE` / `PRICING_QUEUE` / `MATCHING_QUEUE` / `SCRAPING_QUEUE` | api-gateway | No | Nombres de las colas de microservicios |
+| `CATALOG_DB_*` | catalog-service | **Sí** | Conexión a PostgreSQL (`bd_catalogs`) |
+
 ## Compile and run the project
 
 ```bash

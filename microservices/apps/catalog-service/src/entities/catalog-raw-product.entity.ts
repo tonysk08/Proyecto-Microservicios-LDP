@@ -1,6 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  Unique,
+} from 'typeorm';
+import { RawProductStatus } from '@app/shared-contracts';
 import { CatalogProductEntity } from './catalog-product.entity';
 
+@Index(['supermarket'])
+@Index(['status'])
+@Unique(['supermarket', 'rawName'])
 @Entity({ name: 'catalog_raw_products', schema: 'catalog' })
 export class CatalogRawProductEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -15,16 +28,19 @@ export class CatalogRawProductEntity {
   @Column({ name: 'raw_brand', nullable: true })
   rawBrand: string;
 
-  @Column('decimal', { precision: 10, scale: 2, nullable: true })
-  lastPrice: number;
-
   @Column({ nullable: true })
   url: string; // Link al producto en la web del súper
 
-  @Column({ default: 'pending' })
-  status: string; // 'pending', 'matched', 'rejected'
+  @Column({
+    type: 'enum',
+    enum: RawProductStatus,
+    default: RawProductStatus.PENDING,
+  })
+  status: RawProductStatus;
 
-  @ManyToOne(() => CatalogProductEntity, (product) => product.rawItems, { nullable: true })
+  @ManyToOne(() => CatalogProductEntity, (product) => product.rawItems, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'normalized_product_id' })
   normalizedProduct: CatalogProductEntity;
 

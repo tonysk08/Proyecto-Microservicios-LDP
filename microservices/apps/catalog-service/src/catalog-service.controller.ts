@@ -1,15 +1,68 @@
 import { Controller } from '@nestjs/common';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { CatalogServiceService } from './catalog-service.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+
 
 @Controller()
 export class CatalogServiceController {
   constructor(private readonly catalogService: CatalogServiceService) {}
 
+  // ── Eventos ───────────────────────────────────────────────
+  /** Persiste los productos crudos cuando un scraper publica scraping.completed. */
+  @EventPattern('scraping.completed')
+  async onScrapingCompleted(
+    @Payload()
+    event: {
+      payload?: {
+        rawProducts?: Array<{
+          rawName: string;
+          supermarketId: string;
+          rawBrand?: string | null;
+          sourceUrl?: string | null;
+        }>;
+      };
+    },
+  ): Promise<void> {
+    await this.catalogService.ingestRawProducts(event?.payload?.rawProducts ?? []);
+  }
+
+  /** Marca el producto crudo como emparejado cuando matching publica product.normalized. */
+  @EventPattern('product.normalized')
+  async onProductNormalized(
+    @Payload()
+    event: {
+      payload?: {
+        supermarketId?: string;
+        rawName?: string;
+        catalogProductId?: string;
+      };
+    },
+  ): Promise<void> {
+    const p = event?.payload;
+    if (p?.supermarketId && p?.rawName && p?.catalogProductId) {
+      await this.catalogService.markRawMatched(
+        p.supermarketId,
+        p.rawName,
+        p.catalogProductId,
+      );
+    }
+  }
+
   @MessagePattern({ cmd: 'get_catalogs' })
   async getCatalogs(
-  @Payload() data: { isActive?: boolean; includeRaw?: boolean }){
+    @Payload()
+    data: {
+      page?: number;
+      limit?: number;
+      category?: string;
+      isActive?: boolean;
+      includeRaw?: boolean;
+    },
+  ) {
     return this.catalogService.findAll({
+      page: data.page ?? 1,
+      limit: data.limit ?? 20,
+      category: data.category,
       isActive: data.isActive ?? true,
       includeRaw: data.includeRaw ?? false,
     });

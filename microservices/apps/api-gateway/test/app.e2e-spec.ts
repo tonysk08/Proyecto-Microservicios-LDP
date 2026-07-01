@@ -1,29 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
-
-describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
-
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
-  });
-
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
-  });
-
-  afterEach(async () => {
-    await app.close();
+/**
+ * E2E del API Gateway.
+ *
+ * El boilerplate original probaba `GET /` → "Hello World!", endpoint que no
+ * existe. La prueba E2E real requiere el stack completo levantado
+ * (`docker-compose up`: RabbitMQ + microservicios) y se implementará en LDP-133.
+ */
+describe.skip('API Gateway (e2e)', () => {
+  it('pendiente (LDP-133): validar GET /api/catalog contra el stack levantado', () => {
+    expect(true).toBe(true);
   });
 });

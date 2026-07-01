@@ -5,6 +5,7 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": true,
+    "webpackConfigPath": "webpack.config.js",
     "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
   },
   "monorepo": true,
@@ -35,6 +36,51 @@
       "sourceRoot": "apps/price-service/src",
       "compilerOptions": {
         "tsConfigPath": "apps/price-service/tsconfig.app.json"
+      }
+    },
+    "shared-contracts": {
+      "type": "library",
+      "root": "libs/shared-contracts",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared-contracts/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared-contracts/tsconfig.lib.json"
+      }
+    },
+    "common": {
+      "type": "library",
+      "root": "libs/common",
+      "entryFile": "index",
+      "sourceRoot": "libs/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/common/tsconfig.lib.json"
+      }
+    },
+    "scraper-orchestrator": {
+      "type": "application",
+      "root": "apps/scraper-orchestrator",
+      "entryFile": "main",
+      "sourceRoot": "apps/scraper-orchestrator/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/scraper-orchestrator/tsconfig.app.json"
+      }
+    },
+    "matching-service": {
+      "type": "application",
+      "root": "apps/matching-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/matching-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/matching-service/tsconfig.app.json"
+      }
+    },
+    "audit-service": {
+      "type": "application",
+      "root": "apps/audit-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/audit-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/audit-service/tsconfig.app.json"
       }
     }
   }

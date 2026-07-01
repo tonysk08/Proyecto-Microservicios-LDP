@@ -12,6 +12,8 @@ services:
       RABBITMQ_DEFAULT_PASS: admin1234
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
     networks:
       - microservices-network
     healthcheck:
@@ -52,6 +54,8 @@ services:
       - "80:3000"
     environment:
       RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      CATALOG_QUEUE: catalog_queue
+      PRICING_QUEUE: pricing_queue
     networks:
       - microservices-network
     depends_on:
@@ -66,6 +70,7 @@ services:
     restart: unless-stopped
     environment:
       RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      CATALOG_QUEUE: catalog_queue
       CATALOG_DB_HOST: service-db01
       CATALOG_DB_PORT: 5432
       CATALOG_DB_USER: catalog_user
@@ -88,10 +93,11 @@ services:
     restart: unless-stopped
     environment:
       RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      PRICE_QUEUE: pricing_queue
       PRICE_DB_HOST: service-db01
       PRICE_DB_PORT: 5432
       PRICE_DB_USER: prices_user
-      PRICE_DB_PASSWORD: my_precios_password
+      PRICE_DB_PASSWORD: my_prices_password
       PRICE_DB_NAME: bd_prices
       PRICE_DB_SCHEMA: pricing
     networks:
@@ -100,6 +106,127 @@ services:
       rabbitmq:
         condition: service_healthy
       service-db:
+        condition: service_healthy
+
+  audit-service:
+    build:
+      context: ./microservices
+      dockerfile: apps/audit-service/Dockerfile
+    container_name: Audit-Service
+    restart: unless-stopped
+    environment:
+      RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      AUDIT_QUEUE: audit_queue
+      LOGS_DB_HOST: service-db01
+      LOGS_DB_PORT: 5432
+      LOGS_DB_USER: logs_user
+      LOGS_DB_PASSWORD: my_logs_password
+      LOGS_DB_NAME: bd_logs
+      LOGS_DB_SCHEMA: audit
+    networks:
+      - microservices-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      service-db:
+        condition: service_healthy
+
+  matching-service:
+    build:
+      context: ./microservices
+      dockerfile: apps/matching-service/Dockerfile
+    container_name: Matching-Service
+    restart: unless-stopped
+    environment:
+      RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      MATCHING_QUEUE: matching_queue
+      CATALOG_QUEUE: catalog_queue
+      MATCHING_DB_HOST: service-db01
+      MATCHING_DB_PORT: 5432
+      MATCHING_DB_USER: matching_user
+      MATCHING_DB_PASSWORD: my_matching_password
+      MATCHING_DB_NAME: bd_matching
+      MATCHING_DB_SCHEMA: matching
+      SIMILARITY_THRESHOLD: "0.6"
+    networks:
+      - microservices-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      service-db:
+        condition: service_healthy
+
+  scraper-orchestrator:
+    build:
+      context: ./microservices
+      dockerfile: apps/scraper-orchestrator/Dockerfile
+    container_name: Scraper-Orchestrator
+    restart: unless-stopped
+    environment:
+      RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      ORCHESTRATOR_QUEUE: scraper_orchestrator_queue
+      SCRAPING_EXCHANGE: scraping.exchange
+      SCRAPER_IDS: super99,riba-smith,el-machetazo
+      SCRAPE_TIMEOUT_MS: 120000
+    networks:
+      - microservices-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  # ─── Scrapers (uno por supermercado, cola independiente) ───
+  scraper-super99:
+    build:
+      context: ./scrapers
+      dockerfile: super99/Dockerfile
+    container_name: Scraper-Super99
+    restart: unless-stopped
+    environment:
+      RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      SCRAPER_ID: super99
+      SCRAPER_QUEUE: scraper.super99.queue
+      SCRAPING_EXCHANGE: scraping.exchange
+      TARGET_URL: https://www.super99.com
+    networks:
+      - microservices-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  scraper-riba-smith:
+    build:
+      context: ./scrapers
+      dockerfile: riba_smith/Dockerfile
+    container_name: Scraper-RibaSmith
+    restart: unless-stopped
+    environment:
+      RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      SCRAPER_ID: riba-smith
+      SCRAPER_QUEUE: scraper.riba-smith.queue
+      SCRAPING_EXCHANGE: scraping.exchange
+      TARGET_URL: https://ribasmith.com
+    networks:
+      - microservices-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  scraper-el-machetazo:
+    build:
+      context: ./scrapers
+      dockerfile: el_machetazo/Dockerfile
+    container_name: Scraper-ElMachetazo
+    restart: unless-stopped
+    environment:
+      RABBITMQ_URL: amqp://admin:admin1234@rabbitmq:5672
+      SCRAPER_ID: el-machetazo
+      SCRAPER_QUEUE: scraper.el-machetazo.queue
+      SCRAPING_EXCHANGE: scraping.exchange
+      TARGET_URL: https://www.elmachetazo.com
+    networks:
+      - microservices-network
+    depends_on:
+      rabbitmq:
         condition: service_healthy
 
 volumes:

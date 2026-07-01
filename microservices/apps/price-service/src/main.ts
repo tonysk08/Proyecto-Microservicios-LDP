@@ -1,22 +1,29 @@
 import { NestFactory } from '@nestjs/core';
-import { PriceServiceModule } from './price-service.module';
+import { ConfigService } from '@nestjs/config';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { PriceServiceModule } from './price-service.module';
 
 async function bootstrap() {
+  // Config del transporte desde variables de entorno (sin literales hardcodeados)
+  const config = new ConfigService();
+
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     PriceServiceModule,
     {
       transport: Transport.RMQ,
       options: {
-        urls: [process.env.RABBITMQ_URL ?? 'amqp://localhost:5672'],
-        queue: 'price_queue',
-        queueOptions: {
-          durable: true,
-        },
+        urls: [config.getOrThrow<string>('RABBITMQ_URL')],
+        queue: config.getOrThrow<string>('PRICE_QUEUE'),
+        queueOptions: { durable: true },
+        // Cola de eventos predeclarada (con DLX) en definitions.json
+        noAssert: true,
+        // Ack manual: consumeWithDlq confirma o lleva a DLQ (LDP-022)
+        noAck: false,
       },
-    }
+    },
   );
+
   await app.listen();
-  console.log(`Price-Service esta escuchando en RabbitMQ...`);
+  console.log('Price-Service esta escuchando en RabbitMQ...');
 }
 bootstrap();

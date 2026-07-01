@@ -1,11 +1,15 @@
-import { Injectable,HttpStatus } from '@nestjs/common';
+import { Injectable, HttpStatus, Logger } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm';
+import { RawProductStatus } from '@app/shared-contracts';
 import { CatalogProductEntity } from './entities/catalog-product.entity';
+import { CatalogRawProductEntity } from './entities/catalog-raw-product.entity';
 
 @Injectable()
 export class CatalogServiceService {
+
+  private readonly logger = new Logger(CatalogServiceService.name);
 
   // Regex estándar para validar UUID v4
   private readonly UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -13,17 +17,119 @@ export class CatalogServiceService {
   constructor(
     @InjectRepository(CatalogProductEntity)
     private readonly catalogProductRepository: Repository<CatalogProductEntity>,
+    @InjectRepository(CatalogRawProductEntity)
+    private readonly catalogRawProductRepository: Repository<CatalogRawProductEntity>,
   ) {}
 
-  async findAll(options: { isActive?: boolean; includeRaw?: boolean } = {}) {
-    
-    const { isActive = true, includeRaw = false } = options;
+  /**
+   * Ingesta los productos crudos de un evento scraping.completed.
+   * Idempotente: ON CONFLICT (supermarket, raw_name) DO NOTHING.
+   */
+  async ingestRawProducts(
+    rawProducts: Array<{
+      rawName: string;
+      supermarketId: string;
+      rawBrand?: string | null;
+      sourceUrl?: string | null;
+    }> = [],
+  ) {
+    if (!rawProducts.length) {
+      return { received: 0, inserted: 0 };
+    }
 
-    return this.catalogProductRepository.find({
-      relations: includeRaw ? { rawItems: true } : {},
-      where: { isActive },
-      order: { createdAt: 'DESC' },
-    });
+    const rows = rawProducts
+      .filter((rp) => rp?.rawName && rp?.supermarketId)
+      .map((rp) => ({
+        supermarket: rp.supermarketId,
+        rawName: rp.rawName,
+        rawBrand: rp.rawBrand ?? undefined,
+        url: rp.sourceUrl ?? undefined,
+        status: RawProductStatus.PENDING,
+      }));
+
+    const result = await this.catalogRawProductRepository
+      .createQueryBuilder()
+      .insert()
+      .into(CatalogRawProductEntity)
+      .values(rows)
+      .orIgnore() // ON CONFLICT DO NOTHING (unique supermarket, raw_name)
+      .execute();
+
+    const inserted = result.identifiers.filter(Boolean).length;
+    this.logger.log(
+      `scraping.completed: ${rawProducts.length} recibidos, ${inserted} nuevos insertados`,
+    );
+    return { received: rawProducts.length, inserted };
+  }
+
+  /**
+   * Enlaza un producto crudo con su producto normalizado y lo marca como matched.
+   * (Consumido desde product.normalized del matching-service.)
+   */
+  async markRawMatched(
+    supermarketId: string,
+    rawName: string,
+    catalogProductId: string,
+  ) {
+    const result = await this.catalogRawProductRepository
+      .createQueryBuilder()
+      .update(CatalogRawProductEntity)
+      .set({
+        normalizedProduct: { id: catalogProductId },
+        status: RawProductStatus.MATCHED,
+      })
+      .where('supermarket = :supermarketId AND raw_name = :rawName', {
+        supermarketId,
+        rawName,
+      })
+      .execute();
+    this.logger.log(
+      `product.normalized: ${supermarketId}/${rawName} → matched (${result.affected ?? 0})`,
+    );
+  }
+
+  async findAll(
+    options: {
+      page?: number;
+      limit?: number;
+      category?: string;
+      isActive?: boolean;
+      includeRaw?: boolean;
+    } = {},
+  ) {
+    const { category, isActive = true, includeRaw = false } = options;
+
+    // Saneo de paginación: page >= 1, 1 <= limit <= 100
+    const page = Math.max(1, Number(options.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(options.limit) || 20));
+
+    const query = this.catalogProductRepository
+      .createQueryBuilder('p')
+      .where('p.isActive = :isActive', { isActive });
+
+    if (includeRaw) {
+      query.leftJoinAndSelect('p.rawItems', 'raw');
+    }
+
+    if (category) {
+      query.andWhere('LOWER(p.category) = LOWER(:category)', { category });
+    }
+
+    const [items, total] = await query
+      .orderBy('p.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: items,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async searchProducts(query: string) {

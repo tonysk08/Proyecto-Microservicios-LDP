@@ -1,0 +1,7 @@
+[
+  { "raw_name": "Leche Entera Estrella Azul 946 ml", "raw_brand": "Estrella Azul", "price": 1.65, "unit": "ml", "category": "Lácteos" },
+  { "raw_name": "Leche Entera Nevada 946 ml", "raw_brand": "Nevada", "price": 1.59, "unit": "ml", "category": "Lácteos" },
+  { "raw_name": "Arroz Especial Pelin 2.27 kg", "raw_brand": "Pelin", "price": 3.79, "unit": "kg", "category": "Granos" },
+  { "raw_name": "Arrossisimo Especial 2 kg", "raw_brand": "Arrossisimo", "price": 3.55, "unit": "kg", "category": "Granos" },
+  { "raw_name": "Aceite Vegetal Nutrioli 1 L", "raw_brand": "Nutrioli", "price": 3.25, "unit": "l", "category": "Aceites" }
+]

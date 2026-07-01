@@ -6,15 +6,16 @@ WORKDIR /app
 #Copia dependiencias primero
 COPY package*.json ./
 COPY nest-cli.json ./
+COPY webpack.config.js ./
 COPY tsconfig*.json ./
 
 RUN npm install
 
 # Copia el código fuente
 COPY apps/ ./apps/
-#COPY libs/ ./libs/
+COPY libs/ ./libs/
 
-# Compila solo el api-gateway
+# Compila solo el price-service
 RUN npm run build price-service
 
 #------ Stage 2: Producction  ------
@@ -28,5 +29,10 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 COPY --from=builder /app/dist/apps/price-service ./dist/apps/price-service
+
+# Usuario no-root
+USER node
+
+# Sin HEALTHCHECK HTTP: microservicio RMQ puro (sin servidor HTTP).
 
 CMD ["node", "dist/apps/price-service/main.js"]

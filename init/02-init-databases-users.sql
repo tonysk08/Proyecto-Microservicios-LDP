@@ -12,7 +12,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA catalog GRANT ALL ON SEQUENCES TO catalog_use
 
 -- === bd_prices ===
 \c bd_prices;
-CREATE USER prices_user WITH PASSWORD 'my_precios_password';
+CREATE USER prices_user WITH PASSWORD 'my_prices_password';
 GRANT ALL PRIVILEGES ON DATABASE bd_prices TO prices_user;
 GRANT ALL ON SCHEMA pricing TO prices_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA pricing GRANT ALL ON TABLES TO prices_user;

@@ -18,28 +18,50 @@ export class CatalogController {
     ){}
 
     @Get()
-    @ApiOperation({ summary: 'Obtener listado de catálogos activos' })
+    @ApiOperation({ summary: 'Listar catálogos activos (paginado)' })
+    @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+    @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
+    @ApiQuery({ name: 'category', required: false, type: String })
     @ApiQuery({ name: 'includeRaw', required: false, type: Boolean })
-    async getCatalogs(@Query('includeRaw') includeRaw?: string) {
+    async getCatalogs(
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('category') category?: string,
+        @Query('includeRaw') includeRaw?: string,
+    ) {
         return firstValueFrom(
             this.client.send(
-                { cmd: 'get_catalogs' }, 
+                { cmd: 'get_catalogs' },
                 {
-                    isActive: true, 
-                    includeRaw: includeRaw === 'true' 
+                    page: page ? Number(page) : 1,
+                    limit: limit ? Number(limit) : 20,
+                    category,
+                    isActive: true,
+                    includeRaw: includeRaw === 'true',
                 }
             )
         );
     }
 
     @Get('deactivated')
-    @ApiOperation({ summary: 'Obtener listado de catálogos desactivados' })
+    @ApiOperation({ summary: 'Listar catálogos desactivados (paginado)' })
+    @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+    @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
+    @ApiQuery({ name: 'category', required: false, type: String })
     @ApiQuery({ name: 'includeRaw', required: false, type: Boolean })
-    async getCatalogsDeactivated(@Query('includeRaw') includeRaw?: string) {
+    async getCatalogsDeactivated(
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('category') category?: string,
+        @Query('includeRaw') includeRaw?: string,
+    ) {
         return firstValueFrom(
             this.client.send(
-                { cmd: 'get_catalogs' }, 
+                { cmd: 'get_catalogs' },
                 {
+                    page: page ? Number(page) : 1,
+                    limit: limit ? Number(limit) : 20,
+                    category,
                     isActive: false,
                     includeRaw: includeRaw === 'true',
                 }
